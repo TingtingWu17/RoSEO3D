@@ -127,7 +127,7 @@ PSFy_isotropic = (1/3*PSFy.XXy(:,:,3)+1/3*PSFy.YYy(:,:,3)+1/3*PSFy.ZZy(:,:,3));
 for kk = 1:200
 %SMLM_img = poissrnd(I);
 %
-[SM_est,NLL] = RoSEO3D(n1, SMLM_img, backg,n1,FPSFx, FPSFy,'PSF_size_opt',21);
+SM_est = RoSEO3D(n1, SMLM_img, backg,n1,FPSFx, FPSFy,'PSF_size_opt',21);
 if abs(SM_est(1))>50 || abs(SM_est(2))>50 || abs(SM_est(3)-350)>30
     aa=1; 
 end
@@ -156,11 +156,7 @@ saveOren = [];
 for ll = 1:size(SM_est,1)
 secM(1:6)=SM_est(ll,5:10);
 signal = SM_est(ll,4);
-% if norm(SM_est(ll,1:3)-SM_GT(1,1:3))<norm(SM_est(ll,1:3)-SM_GT(2,1:3))
-% [mux,muy,muz,rotMobil] = secondM2SymmCone_for_experiment(double(secM),signal,2,double(basis_matrix_opt1));
-% else
-%     [mux,muy,muz,rotMobil] = secondM2SymmCone_for_experiment(double(secM),signal,2,double(basis_matrix_opt2));
-% end 
+
 [mux,muy,muz,rotMobil] = secondM2SymmCone_for_experiment(double(secM),signal,2,double(basis_matrix_opt2));
 if muz<=0
     mux = -mux;
