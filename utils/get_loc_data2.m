@@ -22,26 +22,26 @@ for ii = 1:size(gammaf,2)
 
      pm = loc_rec(:,ii);
      %-----------------------------------------------------
-    imx_xx = pm(1) + (z_xx(ii,2) / (eps + z_xx(ii,1))) * 10^2; %x position
-    imy_xx = pm(2) + (z_xx(ii,3) / (eps + z_xx(ii,1))) * 10^2; %y position
-    imz_xx = pm(3) + (z_xx(ii,4) / (eps + z_xx(ii,1))) * 10^2; %z position
+    imx_xx = (z_xx(ii,2) / (eps + z_xx(ii,1))) * 10^2; %x position
+    imy_xx = (z_xx(ii,3) / (eps + z_xx(ii,1))) * 10^2; %y position
+    imz_xx = (z_xx(ii,4) / (eps + z_xx(ii,1))) * 10^2; %z position
     br_m_xx = z_xx(ii,1); %brightness scales
 
 
     % YY basis
     %-----------------------------------------------------
 
-    imx_yy = pm(1) + (z_yy(ii,2) / (eps + z_yy(ii,1))) * 10^2; %x position
-    imy_yy = pm(2) + (z_yy(ii,3) / (eps + z_yy(ii,1))) * 10^2; %y position
-    imz_yy = pm(3) + (z_yy(ii,4) / (eps + z_yy(ii,1))) * 10^2; %z position
+    imx_yy = (z_yy(ii,2) / (eps + z_yy(ii,1))) * 10^2; %x position
+    imy_yy = (z_yy(ii,3) / (eps + z_yy(ii,1))) * 10^2; %y position
+    imz_yy = (z_yy(ii,4) / (eps + z_yy(ii,1))) * 10^2; %z position
     br_m_yy = z_yy(ii,1); %brightness scales
 
     % ZZ basis
     %-----------------------------------------------------
 
-    imx_zz = pm(1) + (z_zz(ii,2) / (eps + z_zz(ii,1))) * 10^2; %x position
-    imy_zz = pm(2) + (z_zz(ii,3) / (eps + z_zz(ii,1))) * 10^2; %y position
-    imz_zz = pm(3) + (z_zz(ii,4) / (eps + z_zz(ii,1))) * 10^2; %z position
+    imx_zz = (z_zz(ii,2) / (eps + z_zz(ii,1))) * 10^2; %x position
+    imy_zz = (z_zz(ii,3) / (eps + z_zz(ii,1))) * 10^2; %y position
+    imz_zz = (z_zz(ii,4) / (eps + z_zz(ii,1))) * 10^2; %z position
     br_m_zz = z_zz(ii,1); %brightness scales
 
     % XY
@@ -62,9 +62,9 @@ for ii = 1:size(gammaf,2)
     br_m = br_m_xx + br_m_yy + br_m_zz; % molecule brightness is the sum across XX, YY and ZZ
 
 
-    imx = ((imx_xx * br_m_xx) + (imx_yy * br_m_yy) + (imx_zz * br_m_zz)) / (eps + br_m);
-    imy = ((imy_xx * br_m_xx) + (imy_yy * br_m_yy) + (imy_zz * br_m_zz)) / (eps + br_m);
-    imz = ((imz_xx * br_m_xx) + (imz_yy * br_m_yy) + (imz_zz * br_m_zz)) / (eps + br_m);
+    imx = pm(1) + ((imx_xx * br_m_xx) + (imx_yy * br_m_yy) + (imx_zz * br_m_zz)) / (eps + br_m);
+    imy = pm(2) + ((imy_xx * br_m_xx) + (imy_yy * br_m_yy) + (imy_zz * br_m_zz)) / (eps + br_m);
+    imz = pm(3) + ((imz_xx * br_m_xx) + (imz_yy * br_m_yy) + (imz_zz * br_m_zz)) / (eps + br_m);
 
     % map to sencond moments
     %-----------------------------------------------------
@@ -75,6 +75,6 @@ for ii = 1:size(gammaf,2)
     %update localizaton data
     %----------------------------------------------------
     loc_data = [loc_data;imx, imy,imz, br_m, secondM];
-    ii = ii+1;
+
     end
 end

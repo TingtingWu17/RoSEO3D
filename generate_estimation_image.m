@@ -1,4 +1,4 @@
-function [bkg,SMLM_img,I,SM_GT,basis_matrix_opt1,basis_matrix_opt2,angle_GT] = generate_estimation_image
+function [bkg,SMLM_img,I,SM_GT,angle_GT] = generate_estimation_image
 
 addpath(genpath('C:\Users\wu.t\OneDrive - Washington University in St. Louis\github\PSF-optimization'));
 addpath(genpath('C:\Users\wu.t\OneDrive - Washington University in St. Louis\github\data of PSF-optimization'));
@@ -9,7 +9,7 @@ addpath(genpath('/Users/tingtingwu/Documents/OneDrive - Washington University in
 %addpath(genpath('/Users/tingtingwu/Documents/OneDrive - Washington University in St. Louis/github/PSF-optimization'));
 %addpath(genpath('C:\Users\wu.t\OneDrive - Washington University in St. Louis\github\PSF-optimization'));
 
-signal=100000;
+signal=1000;
 background=2;
 
 Microscopy=struct();
@@ -47,36 +47,37 @@ Microscopy.mask='pixOL_v12.bmp';
 
 %%
 %SM1
-Microscopy.rot=0; Microscopy.z=-450*10^-9; zf_init=0; Microscopy.z2 = 350*10^-9;
+Microscopy.rot=0; Microscopy.z=-450*10^-9; zf_init=0; Microscopy.z2 = 0*10^-9;
 [basis_matrix_opt1,mask_opt,BFP] = basis_matrix_pixel_based_v3_in(Microscopy,pmask);
 loc = [0,0];
 imgSz = Microscopy.image_size;
-theta =90; phi = 45; gamma=1; 
+theta =0; phi = 45; gamma=1; 
 [muxx,muyy,muzz,muxy,muxz,muyz] = Quickly_rotating_matrix_angleD_gamma_to_M(theta,phi,gamma);
 I1 = basis_matrix_opt1*[muxx,muyy,muzz,muxy,muxz,muyz].';
 I1 = signal*I1;
 I1 = reshape(I1,imgSz,imgSz*2);
 I1x = I1(:,1:imgSz); I1y = fliplr(I1(:,imgSz+1:end));
+I1x = imtranslate(I1x,[1,1]); I1y = imtranslate(I1y,[-1,-1]);
 I1 = imtranslate([I1x,I1y],loc);
 SM1_GT = [loc*58.5,Microscopy.z2*10^9,signal,[muxx,muyy,muzz,muxy,muxz,muyz]];
 angle_GT1 = [theta,phi,gamma];
 
 basis_matrix_opt2 = basis_matrix_opt1;
-% % SM2
-% Microscopy.rot=0; Microscopy.z=-450*10^-9; zf_init=0; Microscopy.z2 = 700*10^-9;
-% [basis_matrix_opt2,mask_opt,BFP] = basis_matrix_pixel_based_v3_in(Microscopy,pmask);
-% loc = [-5, -5];
-% 
-% imgSz = Microscopy.image_size;
-% theta =90; phi = 45; gamma=1; 
-% [muxx,muyy,muzz,muxy,muxz,muyz] = Quickly_rotating_matrix_angleD_gamma_to_M(theta,phi,gamma);
-% I2 = basis_matrix_opt2*[muxx,muyy,muzz,muxy,muxz,muyz].';
-% I2 = signal*I2;
-% I2 = reshape(I2,imgSz,imgSz*2);
-% I2x = I2(:,1:imgSz); I2y = fliplr(I2(:,imgSz+1:end));
-% I2 = imtranslate([I2x,I2y],loc);
-% angle_GT2 = [theta,phi,gamma];
-% SM2_GT = [loc*58.5,Microscopy.z2*10^9,signal,[muxx,muyy,muzz,muxy,muxz,muyz] ];
+% SM2
+Microscopy.rot=0; Microscopy.z=-450*10^-9; zf_init=0; Microscopy.z2 = 350*10^-9;
+[basis_matrix_opt2,mask_opt,BFP] = basis_matrix_pixel_based_v3_in(Microscopy,pmask);
+loc = [10, 0];
+
+imgSz = Microscopy.image_size;
+theta =90; phi = 45; gamma=1; 
+[muxx,muyy,muzz,muxy,muxz,muyz] = Quickly_rotating_matrix_angleD_gamma_to_M(theta,phi,gamma);
+I2 = basis_matrix_opt2*[muxx,muyy,muzz,muxy,muxz,muyz].';
+I2 = signal*I2;
+I2 = reshape(I2,imgSz,imgSz*2);
+I2x = I2(:,1:imgSz); I2y = fliplr(I2(:,imgSz+1:end));
+I2 = imtranslate([I2x,I2y],loc);
+angle_GT2 = [theta,phi,gamma];
+SM2_GT = [loc*58.5,Microscopy.z2*10^9,signal,[muxx,muyy,muzz,muxy,muxz,muyz] ];
 % 
 % % SM3
 % Microscopy.rot=0; Microscopy.z=-600*10^-9; zf_init=0; Microscopy.z2 = 400*10^-9;

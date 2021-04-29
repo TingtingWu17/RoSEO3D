@@ -1,4 +1,4 @@
-function projected_gamma =f_projection(gamma,r)
+function gammaNew =f_projection(gamma,r)
 
 %% projection step-1: limit the jumping distance
 gamma = reshape(gamma,15,[]);
@@ -130,10 +130,7 @@ szzdy = gamma(12,:);
 sxxdz = gamma(13,:);
 syydz = gamma(14,:);
 szzdz = gamma(15,:);
-if s<0
-    gammaNew = zeros(size(gammaold));
-    return
-end
+
 
 xx = sxx./s;  xy = sxy./s;
 yy = syy./s;  xz = sxz./s;
@@ -161,22 +158,22 @@ lambda_pjc(ii) = max(min(1.5 * real(D(3, 3)) - .5,1),0);
 
 end
 
-sxx_pjt = s*(lambda_pjc .* mux_pjc.^2 + (1 - lambda_pjc) / 3);
-syy_pjt = s*(lambda_pjc .* muy_pjc.^2 + (1 - lambda_pjc) / 3);
-szz_pjt = s*(lambda_pjc .* muz_pjc.^2 + (1 - lambda_pjc) / 3);
-sxy_pjt = s*lambda_pjc .* mux_pjc .* muy_pjc;
-sxz_pjt = s*lambda_pjc .* mux_pjc .* muz_pjc;
-syz_pjt = s*lambda_pjc .* muy_pjc .* muz_pjc;
+sxx_pjt = s.*(lambda_pjc .* mux_pjc.^2 + (1 - lambda_pjc) / 3);
+syy_pjt = s.*(lambda_pjc .* muy_pjc.^2 + (1 - lambda_pjc) / 3);
+szz_pjt = s.*(lambda_pjc .* muz_pjc.^2 + (1 - lambda_pjc) / 3);
+sxy_pjt = s.*lambda_pjc .* mux_pjc .* muy_pjc;
+sxz_pjt = s.*lambda_pjc .* mux_pjc .* muz_pjc;
+syz_pjt = s.*lambda_pjc .* muy_pjc .* muz_pjc;
 
-sxxdx_pjt = sxx_pjt*dx_xx;
-syydx_pjt = syy_pjt*dx_yy;
-szzdx_pjt = szz_pjt*dx_zz;
-sxxdy_pjt = sxx_pjt*dy_xx;
-syydy_pjt = syy_pjt*dy_yy;
-szzdy_pjt = szz_pjt*dy_zz;
-sxxdz_pjt = sxx_pjt*dz_xx;
-syydz_pjt = syy_pjt*dz_yy;
-szzdz_pjt = szz_pjt*dz_zz;
+sxxdx_pjt = sxx_pjt.*dx_xx;
+syydx_pjt = syy_pjt.*dx_yy;
+szzdx_pjt = szz_pjt.*dx_zz;
+sxxdy_pjt = sxx_pjt.*dy_xx;
+syydy_pjt = syy_pjt.*dy_yy;
+szzdy_pjt = szz_pjt.*dy_zz;
+sxxdz_pjt = sxx_pjt.*dz_xx;
+syydz_pjt = syy_pjt.*dz_yy;
+szzdz_pjt = szz_pjt.*dz_zz;
 
 gammaNew = [sxx_pjt;syy_pjt;szz_pjt;sxy_pjt;sxz_pjt;syz_pjt;...
             sxxdx_pjt;syydx_pjt;szzdx_pjt;...

@@ -18,7 +18,7 @@
 
 %% simulate images
 
-[backg,SMLM_img,I,SM_GT,basis_matrix_opt1,basis_matrix_opt2,angle_GT] = generate_estimation_image;
+[backg,SMLM_img,I,SM_GT,angle_GT] = generate_estimation_image;
 NLL_GT = sum(sum(I+backg-SMLM_img.*log(I+backg+10^-16)));
 
 
@@ -98,7 +98,7 @@ n1 = Nanoscope('imageSize', imgSize,...
 
 
 
-%%
+%% define image parameters
 
 Bx = cat(4,PSFx.XXx,PSFx.YYx,PSFx.ZZx,PSFx.XYx,PSFx.XZx,PSFx.YZx,...
      PSFx.XXxdx,PSFx.YYxdx,PSFx.ZZxdx,...
@@ -110,10 +110,12 @@ By = cat(4,PSFy.XXy,PSFy.YYy,PSFy.ZZy,PSFy.XYy,PSFy.XZy,PSFy.YZy,...
      PSFy.XXydz,PSFy.YYydz,PSFy.ZZydz);
 
 imgPara.img_size = imgSize;
-imgPara.PSF_size = PSF_size_opt;
+imgPara.PSF_size_opt = 21; % the best size for croping the PSF (pixels)
+imgPara.PSF_size = imgPara.PSF_size_opt;
 imgPara.Bx = Bx;
 imgPara.By = By;
-
+imgPara.maxNumBeads = 5; %the maximum number of beads in a image frame
+imgPara.PSF_size_opt_min = 11; % the minimum size for croping the PSF
 %%
 %initialize a parallel pool
 p = gcp('nocreate');
@@ -124,52 +126,34 @@ end
 PSFx_isotropic = (1/3*PSFx.XXx(:,:,3)+1/3*PSFx.YYx(:,:,3)+1/3*PSFx.ZZx(:,:,3));
 PSFy_isotropic = (1/3*PSFy.XXy(:,:,3)+1/3*PSFy.YYy(:,:,3)+1/3*PSFy.ZZy(:,:,3));
 %count1 = 0;
-for kk = 1:200
-%SMLM_img = poissrnd(I);
+for kk = 1:100
+SMLM_img = poissrnd(I);
 %
-SM_est = RoSEO3D(n1, SMLM_img, backg,n1,FPSFx, FPSFy,'PSF_size_opt',21);
-if abs(SM_est(1))>50 || abs(SM_est(2))>50 || abs(SM_est(3)-350)>30
-    aa=1; 
-end
-% if length(SM_est)==0
-%     kk =kk-1;
-%     count1 = count1+1;
-%     continue
-% end
-SM_est_save{kk} = SM_est;
+SM_est1 = RoSEO3D(SMLM_img, backg,n1,FPSFx, FPSFy,imgPara,'regval',.22);
+%SM_est = RoSEO3D_with_register(SMLM_img, backg,n1,FPSFx, FPSFy,imgPara,'regval',.22);
+SM_est_save{kk} = SM_est1;
 end
 %%
-for kk = 1:200 
+for kk = 1:100 
     SM_est = SM_est_save{kk};
-if length(SM_est)==0
-    count1 = count1+1;
-    kk = kk-1;
-   continue 
-end
-if abs(SM_est(1,1))>100 || abs(SM_est(1,2))>100
-    aaa=1;
-    
-end
+    SM_est(SM_est(:,4)<20) = [];
 %
 saveAngle = [];
 saveOren = [];
 for ll = 1:size(SM_est,1)
-secM(1:6)=SM_est(ll,5:10);
-signal = SM_est(ll,4);
+    [mux,muy,muz,rotMobil] = secondM2SymmCone_RoSEO3D(double(SM_est(ll,:)),2,imgPara);
+    if muz<=0
+        mux = -mux;
+        muy = -muy;
+        muz = -muz;
+    end
+    saveOren(ll,:) = [mux,muy,muz,rotMobil];
+    [thetaD, phiD, alphaD] = symmCone2angle(mux,muy,muz,rotMobil);
+    saveAngle(ll,:) = [thetaD,phiD,alphaD,rotMobil,3*pi-sqrt(rotMobil*8*pi^2+pi^2)];
+end
 
-[mux,muy,muz,rotMobil] = secondM2SymmCone_for_experiment(double(secM),signal,2,double(basis_matrix_opt2));
-if muz<=0
-    mux = -mux;
-    muy = -muy;
-    muz = -muz;
-end
-saveOren(ll,:) = [mux,muy,muz,rotMobil];
-[thetaD, phiD, alphaD] = symmCone2angle(mux,muy,muz,rotMobil);
-saveAngle(ll,:) = [thetaD,phiD,alphaD,rotMobil,3*pi-sqrt(rotMobil*8*pi^2+pi^2)];
-end
 
 Angle_save{kk} = saveAngle;
-%NLL_save{kk} = NLL;
 
 end
 
@@ -182,7 +166,9 @@ SM_est_SM2 = [];
 Angle_est_SM1 = [];
 Angle_est_SM2 = [];
 NLL_est = [];
-for kk = 1:200
+SM_outlier=[];
+Angle_outlier=[];
+for kk = 1:100
    SM_est_cur =  SM_est_save{kk};
    Angle_est_cur = Angle_save{kk};
    if size(SM_est_cur,1)==2
@@ -201,7 +187,7 @@ for kk = 1:200
            %NLL_est(detactability) = NLL_save{kk};
            
        end
-   else
+   elseif size(SM_est_cur,1)==1
        count = count+1;
        SM_outlier{count} = SM_est_cur;
        Angle_outlier{count} = Angle_est_cur;
@@ -210,7 +196,12 @@ for kk = 1:200
    
 end
 %%
-for kk =1:200
+SM_est_SM1=[];
+SM_est_SM2=[];
+Angle_est_SM1=[];
+Angle_est_SM2=[];
+for kk =1:count
+  
 SM_est_SM1(kk,:) = SM_outlier{kk};
 SM_est_SM2(kk,:) = SM_outlier{kk};
 
@@ -227,7 +218,7 @@ hist(NLL_est(NLL_est<1000),100); title('negative loglikelihood'); hold on; plot(
 %%
 options = {'FaceColor','b',...
             'EdgeColor','none'};
-%indx = (SM_est_SM1(:,3)<80&abs(SM_est_SM1(:,1))<50&abs(SM_est_SM1(:,2))<50);
+%indx = (abs(SM_est_SM1(:,3)-0)<80&abs(SM_est_SM1(:,1))<50&abs(SM_est_SM1(:,2))<50);
 %Angle_est_SM1_phi = Angle_est_SM1(:,2);
 %Angle_est_SM1_phi(Angle_est_SM1_phi<0)=Angle_est_SM1_phi(Angle_est_SM1_phi<0)+180;
 %indx = abs(Angle_est_SM1_phi-45)<40;
